@@ -1,31 +1,19 @@
-# Use a lightweight Python image
-FROM python:3.11-slim
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+WORKDIR /app
 
-# Set the working directory in the container
-WORKDIR /api
+# Copy project files
+COPY *.csproj ./
+RUN dotnet restore
 
-# Install necessary system dependencies
-RUN apt-get update \
-    && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends \
-       gcc \
-       pkg-config \
-       libssl-dev \
-       libsasl2-dev \
-       gnupg \
-    && rm -rf /var/lib/apt/lists/*
+# Copy everything and build
+COPY . ./
+RUN dotnet publish -c Release -o out
 
-# Copy the dependencies file first for better Docker caching
-COPY requirements.txt .
+# Runtime image
+FROM mcr.microsoft.com/dotnet/aspnet:7.0
+WORKDIR /app
+COPY --from=build /app/out .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the application code
-COPY . .
-
-# Expose the port on which the Flask app runs
 EXPOSE 5001
-
-# Set the default command to run the application
-CMD ["python", "api.py"]
+CMD ["dotnet", "backend.dll"]
