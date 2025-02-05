@@ -1,154 +1,57 @@
-# from flask import Flask, jsonify, request
-# from flask_mysqldb import MySQL
-# import os
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using MongoDB.Driver;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-# api = Flask(__name__)
+var builder = WebApplication.CreateBuilder(args);
 
-# # MySQL configurations
-# api.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST", "db")
-# api.config["MYSQL_USER"] = os.getenv("MYSQL_USER", "user")
-# api.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD", "password")
-# api.config["MYSQL_DB"] = os.getenv("MYSQL_DB", "quotesdb")
+// MongoDB Configuration
+var mongoUri = Environment.GetEnvironmentVariable("MONGO_URI") ?? "mongodb://mongodb-svc:27017/";
+var client = new MongoClient(mongoUri);
+var database = client.GetDatabase("quotesdb");
+var quotesCollection = database.GetCollection<Quote>("quotes");
 
-# mysql = MySQL(api)
+builder.Services.AddSingleton(quotesCollection);
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        builder => builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+});
 
+var app = builder.Build();
 
-# @api.route("/api/quotes", methods=["GET"])
-# def get_quotes():
-#     cursor = mysql.connection.cursor()
-#     cursor.execute("SELECT * FROM quotes")
-#     quotes = cursor.fetchall()
-#     cursor.close()
-#     return jsonify([{"id": q[0], "quote": q[1], "author": q[2]} for q in quotes])
+app.UseCors("AllowAll");
 
+// Get all quotes
+app.MapGet("/api/quotes", async (IMongoCollection<Quote> collection) =>
+{
+    var quotes = await collection.Find(_ => true).ToListAsync();
+    return Results.Ok(quotes);
+});
 
-# @api.route("/health", methods=["GET"])
-# def health():
-#     return "OK", 200
+// Add a new quote
+app.MapPost("/api/quotes", async (IMongoCollection<Quote> collection, Quote quote) =>
+{
+    if (string.IsNullOrEmpty(quote.QuoteText) || string.IsNullOrEmpty(quote.Author))
+    {
+        return Results.BadRequest("Both 'quote' and 'author' are required.");
+    }
 
+    await collection.InsertOneAsync(quote);
+    return Results.Created($"/api/quotes/{quote.Id}", quote);
+});
 
-# @api.route("/api/quotes", methods=["POST"])
-# def add_quote():
-#     content = request.json["quote"]
-#     author = request.json["author"]
-#     cursor = mysql.connection.cursor()
-#     cursor.execute(
-#         "INSERT INTO quotes (quote, author) VALUES (%s, %s)", (content, author)
-#     )
-#     mysql.connection.commit()
-#     quote_id = cursor.lastrowid
-#     cursor.close()
-#     return jsonify({"id": quote_id, "quote": content, "author": author}), 201
+// Health check
+app.MapGet("/ok", () => Results.Ok("OK"));
 
+app.Run();
 
-# if __name__ == "__main__":
-#     # Use the PORT environment variable provided by Beanstalk, defaulting to 5001 for local development
-#     port = int(os.environ.get("PORT", 5001))
-#     api.run(host="0.0.0.0", port=port)
-
-
-# # from flask import Flask, jsonify, request
-# # from flask_mysqldb import MySQL
-# # import os
-
-# # api = Flask(__name__)
-
-# # # MySQL configurations
-# # api.config["MYSQL_HOST"] = os.getenv("MYSQL_HOST", "db")
-# # api.config["MYSQL_USER"] = os.getenv("MYSQL_USER", "user")
-# # api.config["MYSQL_PASSWORD"] = os.getenv("MYSQL_PASSWORD", "password")
-# # api.config["MYSQL_DB"] = os.getenv("MYSQL_DB", "quotesdb")
-
-# # mysql = MySQL(api)
-
-
-# # @api.route("/api/quotes", methods=["GET"])
-# # def get_quotes():
-# #     cursor = mysql.connection.cursor()
-# #     cursor.execute("SELECT * FROM quotes")
-# #     quotes = cursor.fetchall()
-# #     cursor.close()
-# #     return jsonify([{"id": q[0], "quote": q[1], "author": q[2]} for q in quotes])
-
-
-# # @api.route("/health")
-# # def health():
-# #     return "OK", 200
-
-
-# # @api.route("/api/quotes", methods=["POST"])
-# # def add_quote():
-# #     content = request.json["quote"]
-# #     author = request.json["author"]
-# #     cursor = mysql.connection.cursor()
-# #     cursor.execute(
-# #         "INSERT INTO quotes (quote, author) VALUES (%s, %s)", (content, author)
-# #     )
-# #     mysql.connection.commit()
-# #     quote_id = cursor.lastrowid
-# #     cursor.close()
-# #     return jsonify({"id": quote_id, "quote": content, "author": author})
-
-
-# # if __name__ == "__main__":
-# #     api.run(host="0.0.0.0", port=5001)
-# #     # api.run(debug=True, host="0.0.0.0", port=5001)
-
-
-
-from flask import Flask, jsonify, request
-from pymongo import MongoClient
-import os
-
-api = Flask(__name__)
-
-# MongoDB configurations
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://0.0.0.0:27017/")
-client = MongoClient(MONGO_URI)
-
-# Database and collection configuration
-db = client["quotesdb"]
-quotes_collection = db["quotes"]
-
-
-@api.route("/api/quotes", methods=["GET"])
-def get_quotes():
-    """Fetch all quotes from MongoDB."""
-    quotes = list(quotes_collection.find({}, {"_id": 0}))  # Exclude MongoDB _id field
-    return jsonify(quotes), 200
-
-
-@api.route("/health", methods=["GET"])
-def health():
-    """Health check endpoint."""
-    return "OK", 200
-
-
-@api.route("/api/quotes", methods=["POST"])
-def add_quote():
-    """Add a new quote to MongoDB."""
-    data = request.get_json()
-    if not data or "quote" not in data or "author" not in data:
-        return jsonify({"error": "Both 'quote' and 'author' are required."}), 400
-
-    content = data["quote"]
-    author = data["author"]
-    
-    # Insert a new quote into MongoDB
-    result = quotes_collection.insert_one({"quote": content, "author": author})
-    
-    return jsonify({"id": str(result.inserted_id), "quote": content, "author": author}), 201
-
-
-if __name__ == "__main__":
-    # Use the PORT environment variable, default to 5001 for local development
-    port = int(os.environ.get("PORT", 5001))
-    api.run(host="0.0.0.0", port=port, debug=True)
-
-
-
-
-
-
-
-
+public class Quote
+{
+    public string Id { get; set; }
+    public string QuoteText { get; set; }
+    public string Author { get; set; }
+}
