@@ -1,4 +1,3 @@
-
 # Use the official .NET image from the Docker Hub
 FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
 WORKDIR /app
