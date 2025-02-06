@@ -1,18 +1,19 @@
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+# Use the official .NET SDK image to build the app
+FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+
+# Set working directory and copy necessary files
 WORKDIR /app
-EXPOSE 5001
-
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /src
-COPY ["QuotesApi/QuotesApi.csproj", "QuotesApi/"]
-RUN dotnet restore "QuotesApi/QuotesApi.csproj"
-
 COPY . .
-WORKDIR "/src/QuotesApi"
-RUN dotnet build -c Release -o /app/build
-RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
 
-FROM base AS final
+# Restore dependencies and build the application
+RUN dotnet restore
+RUN dotnet publish -c Release -o /app/publish
+
+# Use the official .NET runtime image to run the app
+FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
 COPY --from=build /app/publish .
-CMD ["dotnet", "QuotesApi.dll"]
+
+EXPOSE 5001
+
+ENTRYPOINT ["dotnet", "QuotesAPI.dll"]
