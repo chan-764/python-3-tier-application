@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using MySql.Data.MySqlClient;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
+using QuotesApi.Data;
+using QuotesApi.Models;
 
 namespace QuotesApi.Controllers
 {
@@ -10,59 +9,25 @@ namespace QuotesApi.Controllers
     [ApiController]
     public class QuotesController : ControllerBase
     {
-        private readonly string connectionString = "server=db;port=3306;database=quotesdb;user=user;password=password";
+        private readonly QuotesDbContext _context;
 
-        // GET: api/quotes
+        public QuotesController(QuotesDbContext context)
+        {
+            _context = context;
+        }
+
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Quote>>> GetQuotes()
         {
-            var quotes = new List<Quote>();
-
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                await connection.OpenAsync();
-                using (var cmd = new MySqlCommand("SELECT * FROM quotes", connection))
-                using (var reader = await cmd.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        quotes.Add(new Quote
-                        {
-                            Id = reader.GetInt32("id"),
-                            QuoteText = reader.GetString("quote"),
-                            Author = reader.GetString("author")
-                        });
-                    }
-                }
-            }
-
-            return Ok(quotes);
+            return await _context.Quotes.ToListAsync();
         }
 
-        // POST: api/quotes
         [HttpPost]
-        public async Task<ActionResult<Quote>> AddQuote([FromBody] Quote newQuote)
+        public async Task<ActionResult<Quote>> PostQuote(Quote quote)
         {
-            using (var connection = new MySqlConnection(connectionString))
-            {
-                await connection.OpenAsync();
-                var query = "INSERT INTO quotes (quote, author) VALUES (@quote, @author)";
-                using (var cmd = new MySqlCommand(query, connection))
-                {
-                    cmd.Parameters.AddWithValue("@quote", newQuote.QuoteText);
-                    cmd.Parameters.AddWithValue("@author", newQuote.Author);
-                    await cmd.ExecuteNonQueryAsync();
-                }
-            }
-
-            return CreatedAtAction(nameof(GetQuotes), new { id = newQuote.Id }, newQuote);
+            _context.Quotes.Add(quote);
+            await _context.SaveChangesAsync();
+            return CreatedAtAction(nameof(GetQuotes), new { id = quote.Id }, quote);
         }
-    }
-
-    public class Quote
-    {
-        public int Id { get; set; }
-        public string QuoteText { get; set; }
-        public string Author { get; set; }
     }
 }
