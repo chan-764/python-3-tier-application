@@ -1,4 +1,4 @@
-namespace QuotesApi.Models
+namespace QuotesAPI.Models
 {
     public class Quote
     {
