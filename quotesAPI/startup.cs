@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
+using MySql.EntityFrameworkCore.Infrastructure; // Added necessary namespace for MySqlServerVersion
 using QuotesApi.Data;
 
 namespace QuotesApi
