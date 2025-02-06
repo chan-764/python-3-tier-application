@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
-using QuotesApi.Models;
+using QuotesAPI.Models;
 
-namespace QuotesApi.Data
+namespace QuotesAPI.Data
 {
     public class QuotesDbContext : DbContext
     {
         public QuotesDbContext(DbContextOptions<QuotesDbContext> options) : base(options) { }
+
         public DbSet<Quote> Quotes { get; set; }
     }
 }
