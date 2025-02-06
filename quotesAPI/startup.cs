@@ -1,10 +1,9 @@
-
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
-using QuotesApi.Data;
+using QuotesAPI.Data;
 
 namespace QuotesAPI
 {
