@@ -15,7 +15,7 @@ services:
 
   backend:
     container_name: quotes-api
-    build: ./backend  # This is your new .NET backend folder
+    build: ./quotesAPI  # This is your new .NET backend folder
     depends_on:
       - db
     environment:
