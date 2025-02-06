@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy the application code
 COPY . .
 
-# Install dependencies (if you have a requirements.txt, uncomment the next line)
-# RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies
+RUN pip install --no-cache-dir flask requests
 
 # Expose the Flask app's port
 EXPOSE 5002
