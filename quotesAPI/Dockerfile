@@ -1,19 +1,19 @@
-# Use the official .NET SDK image to build the app
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-
-# Set working directory and copy necessary files
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
-COPY . .
+EXPOSE 8080
 
-# Restore dependencies and build the application
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY ["QuotesApi.csproj", "./"]
 RUN dotnet restore
+
+COPY . .
+RUN dotnet build -c Release -o /app/build
+
+FROM build AS publish
 RUN dotnet publish -c Release -o /app/publish
 
-# Use the official .NET runtime image to run the app
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+FROM base AS final
 WORKDIR /app
-COPY --from=build /app/publish .
-
-EXPOSE 5001
-
-ENTRYPOINT ["dotnet", "QuotesAPI.dll"]
+COPY --from=publish /app/publish .
+ENTRYPOINT ["dotnet", "QuotesApi.dll"]
