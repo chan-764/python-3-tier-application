@@ -5,6 +5,9 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
 using MySql.EntityFrameworkCore.Infrastructure; // Added necessary namespace for MySqlServerVersion
 using QuotesApi.Data;
+using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using System;  // Add this line
 
 namespace QuotesApi
 {
