@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using QuotesAPI.Models;
+using QuotesApi.Models;
 
-namespace QuotesAPI.Data
+namespace QuotesApi.Data
 {
     public class QuotesDbContext : DbContext
     {
