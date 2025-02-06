@@ -3,9 +3,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.EntityFrameworkCore;
-using QuotesApi.Data; // Ensure the correct namespace
+using QuotesApi.Data;
 
-namespace QuotesApi // Match the correct namespace
+namespace QuotesApi
 {
     public class Startup
     {
@@ -19,14 +19,14 @@ namespace QuotesApi // Match the correct namespace
         public void ConfigureServices(IServiceCollection services)
         {
             // Add MySQL database context
-            services.AddDbContext<QuotesDbContext>(options => 
+            services.AddDbContext<QuotesDbContext>(options =>
                 options.UseMySql(Configuration.GetConnectionString("DefaultConnection"),
                 new MySqlServerVersion(new Version(8, 0, 21))));
 
             services.AddControllers();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostEnvironment env)  // Changed IWebHostEnvironment to IHostEnvironment
         {
             if (env.IsDevelopment())
             {
