@@ -4,9 +4,8 @@ import os
 
 app = Flask(__name__)
 
-# API URL configuration: Default to Docker's API service, or use environment variable for deployment
-API_URL = os.environ.get("API_URL", "http://api:5001")
-
+# Updated API URL to connect to .NET backend running on port 5001
+API_URL = os.environ.get("API_URL", "http://localhost:5001")
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -51,28 +50,7 @@ def index():
         # Render the main page with quotes
         return render_template("index.html", quotes=quotes)
 
-
 if __name__ == "__main__":
     # Use the PORT environment variable, defaulting to 5002 for local development
     port = int(os.environ.get("PORT", 5002))
     app.run(host="0.0.0.0", port=port)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
