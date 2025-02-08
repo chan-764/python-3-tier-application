@@ -1,35 +1,38 @@
-version: '3.9'
-
 services:
-  db:
-    container_name: quotes-db
+  database:
     build: ./db
+    image: database:latest
+    container_name: database
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: quotesdb
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
     volumes:
-      - db-data:/var/lib/mysql
-    restart: always
+      - db_data:/var/lib/mysql
 
   backend:
-    container_name: quotes-api
-    build: ./quotesAPI  # Updated to reflect the correct folder name
+    build: ./quotesAPI
+    image: backend:latest
+    container_name: backend
+    restart: always
     depends_on:
-      - db
+      - database
     environment:
-      ConnectionStrings__DefaultConnection: "Server=db;Database=quotesdb;User=user;Password=password;"
+      - ConnectionStrings__DefaultConnection=Server=database;Database=quotesdb;User=root;Password=root;
     ports:
       - "5001:5001"
 
   frontend:
-    container_name: quotes-frontend
-    build: ./app  # Flask frontend folder
+    build: ./app
+    image: frontend:latest
+    container_name: frontend
+    restart: always
     depends_on:
       - backend
     ports:
       - "5002:5002"
 
 volumes:
-  db-data:
+  db_data:
