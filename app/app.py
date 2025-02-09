@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # Updated API URL to connect to .NET backend running on port 5001
-API_URL = os.environ.get("API_URL", "http://localhost:5001")
+API_URL = os.environ.get("API_URL", "http://52.38.235.125:5001")
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -23,7 +23,7 @@ def index():
 
         try:
             # POST request to the API to add a new quote
-            response = requests.post(f"{API_URL}/api/quotes", json={"quote": quote, "author": author})
+            response = requests.post(f"{API_URL}/api/quotes", json={"content": quote, "author": author})
             if response.status_code == 201:
                 return redirect(url_for("index"))
             else:
