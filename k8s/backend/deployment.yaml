@@ -25,33 +25,37 @@ spec:
         - name: ecr-registry-secret  # Ensure the secret for pulling images is correct
       containers:
         - name: api
-          image: public.ecr.aws/i2c9h7p6/three-tier-backend:latest  # Ensure the image is accessible from the public repository
+          image: chandanuikey97/dotnet_backend:latest  # Updated to your .NET backend image
           imagePullPolicy: Always
           env:
-            - name: MONGO_CONN_STR
-              value: mongodb://mongodb-svc:27017/todo?directConnection=true  # Correct connection string
-            - name: MONGO_USERNAME
+            - name: DB_HOST
+              value: mysql-svc  # MySQL Service name for internal communication
+            - name: DB_PORT
+              value: "3306"  # MySQL runs on port 3306
+            - name: DB_NAME
+              value: quotesdb  # Change to your actual database name
+            - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: mongo-sec
-                  key: username  # Ensure the 'mongo-sec' secret contains the correct key 'username'
-            - name: MONGO_PASSWORD
+                  name: mysql-secret
+                  key: username  # Fetch username from Kubernetes Secret
+            - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mongo-sec
-                  key: password  # Ensure the 'mongo-sec' secret contains the correct key 'password'
+                  name: mysql-secret
+                  key: password  # Fetch password from Kubernetes Secret
           ports:
             - containerPort: 5001  # Ensure this port matches the actual port your application listens on
           livenessProbe:
             httpGet:
-              path: /ok  # Health check path to verify liveness
-              port: 5001  # The port being used by your application
-            initialDelaySeconds: 10  # Adjusted delay before starting the liveness check
-            periodSeconds: 5  # Time interval between liveness checks
+              path: /health  # Update to your API health check endpoint
+              port: 5001  
+            initialDelaySeconds: 10
+            periodSeconds: 5
           readinessProbe:
             httpGet:
-              path: /ok  # Health check path to verify readiness
-              port: 5001  # The port being used by your application
-            initialDelaySeconds: 10  # Adjusted delay before starting the readiness check
-            periodSeconds: 5  # Time interval between readiness checks
-            successThreshold: 1  # Number of successful checks before the container is considered ready
+              path: /health  # Update to your API readiness check endpoint
+              port: 5001  
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            successThreshold: 1
