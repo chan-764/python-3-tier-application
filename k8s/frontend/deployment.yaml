@@ -2,12 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
-  namespace: three-tier
+  namespace: workshop
   labels:
     role: frontend
     env: demo
 spec: 
-  replicas: 1
+  replicas: 2
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -23,10 +23,7 @@ spec:
     spec: 
       containers:
       - name: frontend
-        image: chandanuikey97/dotnet_front:latest
+        image: chandanuikey97/dotnet_front:latest  # Updated to .NET frontend image
         imagePullPolicy: Always
-        env:
-          - name: REACT_APP_BACKEND_URL
-            value: "http://backend:5001/api/quotes"
-        ports:
+        ports: 
         - containerPort: 5002
