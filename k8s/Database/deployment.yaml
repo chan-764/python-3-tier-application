@@ -2,44 +2,43 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   namespace: workshop
-  name: mongodb
+  name: mysql
 spec:
-  replicas: 1
+  replicas: 1  # MySQL typically runs as a single instance unless using clustering
   selector:
     matchLabels:
-      app: mongodb
+      app: mysql
   template:
     metadata:
       labels:
-        app: mongodb
+        app: mysql
     spec:
       containers:
-      - name: mongodb
-        image: mongo:4.4.6
-        command:
-          - "numactl"
-          - "--interleave=all"
-          - "mongod"
-          - "--wiredTigerCacheSizeGB"
-          - "0.1"
-          - "--bind_ip"
-          - "0.0.0.0"
+      - name: mysql
+        image: mysql:8.0  # Updated to use MySQL 8.0 (change as needed)
         ports:
-        - containerPort: 27017
+        - containerPort: 3306  # MySQL default port
         env:
-        - name: MONGO_INITDB_ROOT_USERNAME
+        - name: MYSQL_DATABASE
+          value: quotesdb
+        - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mongo-sec
+              name: mysql-secret
+              key: root-password
+        - name: MYSQL_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
               key: username
-        - name: MONGO_INITDB_ROOT_PASSWORD
+        - name: MYSQL_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mongo-sec
+              name: mysql-secret
               key: password
         volumeMounts:
-        - name: mongo-volume
-          mountPath: /data/db
+        - name: mysql-storage
+          mountPath: /var/lib/mysql
         resources:
           requests:
             memory: "256Mi"
@@ -48,6 +47,6 @@ spec:
             memory: "512Mi"
             cpu: "500m"
       volumes:
-      - name: mongo-volume
+      - name: mysql-storage
         persistentVolumeClaim:
-          claimName: mongo-volume-claim
+          claimName: mysql-pvc  # Updated to use MySQL PVC
