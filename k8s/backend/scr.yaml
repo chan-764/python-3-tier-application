@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-secret
+  namespace: three-tier  # Ensure it matches your namespace
+type: Opaque
+data:
+  mysql-root-password: cm9vdA==   # Base64 encoded value for "root"
+  mysql-user: dXNlcg==            # Base64 encoded value for "user"
+  mysql-password: cGFzc3dvcmQ=     # Base64 encoded value for "password"
+  mysql-database: cXVvdGVzZGI=     # Base64 encoded value for "quotesdb"
